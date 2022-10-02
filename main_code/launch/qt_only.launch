@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!--  MAIN code -->
+  <param name="/img_width" value="480"/> <!-- only for visualization, not for real image width -->
+  <param name="/img_height" value="360"/> 
+  <param name="/first_cam_topic" value="/l515/depth/rgb_image_raw/compressed"/>
+  <param name="/third_cam_topic" value="/third_camera/rgb/image_raw/compressed"/>
+  <param name="/third_cam_name" value="third_camera"/>
+  <param name="/robot_name" value="iris"/>
+
+  <node name="khnp_competition_code" pkg="khnp_competition" type="khnp_competition_node" output="screen"/>
+  <!-- launch-prefix="gdb -ex run --> <!--args" -->
+  <node name="khnp_competition_spawner" pkg="khnp_competition" type="spawning.py" output="screen"/>
+  <node name="khnp_competition_tf_broadcaster" pkg="khnp_competition" type="tf_broadcaster.py" output="screen"/>
+
+</launch>
