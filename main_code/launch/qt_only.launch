@@ -4,7 +4,7 @@
   <!--  MAIN code -->
   <param name="/img_width" value="480"/> <!-- only for visualization, not for real image width -->
   <param name="/img_height" value="360"/> 
-  <param name="/first_cam_topic" value="/l515/depth/rgb_image_raw/compressed"/>
+  <param name="/first_cam_topic" value="/d435i/stereo_ir/left/image_raw/compressed"/>
   <param name="/third_cam_topic" value="/third_camera/rgb/image_raw/compressed"/>
   <param name="/third_cam_name" value="third_camera"/>
   <param name="/robot_name" value="iris"/>

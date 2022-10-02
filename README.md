@@ -1,9 +1,7 @@
 ## TODO
 + yaml file config
-+ QT
+  + Wind disturbance
 + scoring
-+ cam spawning
-+ cam tf, drone tf broadcast
 + drone control example code
 + finishing - .csv file writing
 
@@ -11,8 +9,8 @@
 <br>
 
 
-# Korea Hydro & Nuclear Power - Autonomous Robotic Challenge 2022
-## KVRC: KHNP Virtual Robot Challenge 2022
+# KVRC 2022: KHNP Virtual Robot Challenge 2022
+## Hosted by Korea Hydro & Nuclear Power
 + Quadrotor UAV is used for this year
 
 <br>

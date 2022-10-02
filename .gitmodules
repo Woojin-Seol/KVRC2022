@@ -1,0 +1,3 @@
+[submodule "gazebo_map_for_khnp"]
+	path = gazebo_map_for_khnp
+	url = https://github.com/engcang/gazebo_map_for_khnp

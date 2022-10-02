@@ -48,8 +48,6 @@ class mason_spawner():
             print(response.status_message)
             if response.success:
                 self.if_cam_spawned=True
-                print("Cam spawned!!")
-                sys.exit(0)
 
 
 if __name__=='__main__':
@@ -63,4 +61,7 @@ if __name__=='__main__':
         finally:
             if mas.if_cam_spawned:
                 break
+    time.sleep(7)
+    rospy.logwarn("Cam spawned!!")
+    rospy.logwarn("Cam spawning code exit.")
     sys.exit(0)

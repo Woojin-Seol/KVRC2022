@@ -13,9 +13,9 @@
     <!-- vehicle model and world -->
     <arg name="est" default="ekf2"/>
     <arg name="vehicle" default="iris"/>
-    <arg name="sensor" default="iris_khnp"/>
-    <arg name="world" default="$(find khnp_competition)/../gazebo_map_for_khnp/new_add_kdarpa.world"/>
-    <arg name="sdf" default="$(find khnp_competition)/../gazebo_map_for_khnp/$(arg sensor)/$(arg sensor).sdf"/>
+    <arg name="sensor" default="iris_khnp_sensors"/>
+    <arg name="world" default="$(find khnp_competition)/../gazebo_map_for_khnp/season2/practice.world"/>
+    <arg name="sdf" default="$(find khnp_competition)/../gazebo_map_for_khnp/season2/$(arg sensor)/$(arg sensor).sdf"/>
 
     <!-- gazebo configs -->
     <arg name="gui" default="true"/>
