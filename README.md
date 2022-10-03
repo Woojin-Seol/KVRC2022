@@ -1,14 +1,3 @@
-## TODO
-+ yaml file config
-  + Wind disturbance
-+ scoring
-+ drone control example code
-+ finishing - .csv file writing
-
-
-<br>
-
-
 # KVRC 2022: KHNP Virtual Robot Challenge 2022
 ## Hosted by Korea Hydro & Nuclear Power
 + Quadrotor UAV is used for this year
@@ -28,7 +17,6 @@
 <!-- </p> -->
 
 
-<br>
 <br>
 
 

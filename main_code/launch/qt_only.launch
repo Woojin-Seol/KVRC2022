@@ -12,6 +12,6 @@
   <node name="khnp_competition_code" pkg="khnp_competition" type="khnp_competition_node" output="screen"/>
   <!-- launch-prefix="gdb -ex run --> <!--args" -->
   <node name="khnp_competition_spawner" pkg="khnp_competition" type="spawning.py" output="screen"/>
-  <node name="khnp_competition_tf_broadcaster" pkg="khnp_competition" type="tf_broadcaster.py" output="screen"/>
+  <node name="khnp_competition_tf_broadcaster" pkg="khnp_competition" type="tf_broadcaster.py"/>
 
 </launch>

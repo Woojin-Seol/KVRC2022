@@ -7,7 +7,7 @@
   <arg name="verbose" default="false"/> <!-- Gazebo verbose, set true when debug Gazebo -->
 
 <!-- Edit this part with your own algorithms -->
-  <!-- <node name="example_control_node" pkg="khnp_competition" type="example_control_code.py"/> -->
+  <node name="example_control_node" pkg="khnp_competition" type="example_control_code.py"/>
 
 
 
@@ -17,7 +17,10 @@
 
   <!-- Gazebo -->
   <arg if="$(eval arg('course') == 'practice')" name="world" value="$(find khnp_competition)/../gazebo_map_for_khnp/season2/practice.world"/>
+  <rosparam if="$(eval arg('course') == 'practice')" command="load" file="$(find khnp_competition)/resources/practice.yaml" />
   <arg if="$(eval arg('course') == 'real')" name="world" value="$(find khnp_competition)/../gazebo_map_for_khnp/season2/real.world" />
+  <rosparam if="$(eval arg('course') == 'real')" command="load" file="$(find khnp_competition)/resources/real.yaml" />
+
   <include file="$(find khnp_competition)/launch/gazebo.launch">
       <arg name="world" value="$(arg world)"/>
       <!-- <arg name="world" value="worlds/empty.world"/> -->
@@ -37,6 +40,6 @@
   <node name="khnp_competition_code" pkg="khnp_competition" type="khnp_competition_node" output="screen"/>
   <!-- launch-prefix="gdb -ex run --> <!--args" -->
   <node name="khnp_competition_spawner" pkg="khnp_competition" type="spawning.py" output="screen"/>
-  <node name="khnp_competition_tf_broadcaster" pkg="khnp_competition" type="tf_broadcaster.py" output="screen"/>
+  <node name="khnp_competition_tf_broadcaster" pkg="khnp_competition" type="tf_broadcaster.py"/>
 
 </launch>

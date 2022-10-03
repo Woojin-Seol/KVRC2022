@@ -37,7 +37,7 @@
 #include <gazebo_msgs/ModelState.h>
 #include <gazebo_msgs/ModelStates.h>
 #include <gazebo_msgs/SetModelState.h>
-#include <gazebo_msgs/SpawnModel.h>
+#include <gazebo_msgs/ApplyBodyWrench.h>
 #include <std_msgs/Empty.h>
 ///// OpenCV image processing
 #include <sensor_msgs/Image.h>
@@ -89,24 +89,40 @@ class khnp_comp: public QWidget{
     gazebo_msgs::ModelState third_cam_pose;
     geometry_msgs::Pose uav_pose;
     gazebo_msgs::SetModelState model_move_srv;
+    gazebo_msgs::ApplyBodyWrench model_force_srv;
     std_msgs::Empty empty_msg;
     rosgraph_msgs::Clock current_time, fixed_time;
 
     bool qt_initialized=false, state_check=false, clock_check=false, third_cam_check=false, first_cam_check=false;
     bool if_finished=false;
     std::string robot_name, third_cam_name, third_cam_topic, first_cam_topic;
-    int current_class=10, img_width, img_height;
+    int img_width, img_height;
     double cam_z_offset=5.0;
+
+    //finishing
+    double max_time_t=3600.0;
+    vector<double> finish_point;
+    //class
+    int current_class=11;
+    //waypoints
+    vector<double> wp1, wp2, wp3, wp4, wp5, wp6, wp7, wp8, wp9, wp10;
+    double wp_t1=0.0, wp_t2=0.0, wp_t3=0.0, wp_t4=0.0, wp_t5=0.0, wp_t6=0.0, wp_t7=0.0, wp_t8=0.0, wp_t9=0.0, wp_t10=0.0;
+    double wp_tmp_t1=0.0, wp_tmp_t2=0.0, wp_tmp_t3=0.0, wp_tmp_t4=0.0, wp_tmp_t5=0.0, wp_tmp_t6=0.0, wp_tmp_t7=0.0, wp_tmp_t8=0.0, wp_tmp_t9=0.0, wp_tmp_t10=0.0;
+    //wind points
+    vector<double> wind_spec;
 
     ///// ros and tf
     ros::NodeHandle nh;
     ros::Subscriber states_sub, third_cam_sub, first_cam_sub, clock_sub;
     ros::Publisher spawning_msg_pub;
-    ros::ServiceClient model_mover;
+    ros::ServiceClient model_mover, model_pusher;
     ros::Timer main_timer;
 
+    void cam_move(const geometry_msgs::Pose &pose);
+    bool if_passed_finish(const geometry_msgs::Pose &pose, const vector<double> &pt);
+    void if_waypoints(const geometry_msgs::Pose &pose);
+    void if_wind_disturbance(const geometry_msgs::Pose &pose);
     void main_timer_func(const ros::TimerEvent& event);
-    void cam_move(geometry_msgs::Pose pose);
     void states_callback(const gazebo_msgs::ModelStates::ConstPtr& msg);
     void third_cam_callback(const sensor_msgs::CompressedImage::ConstPtr& msg);
     void first_cam_callback(const sensor_msgs::CompressedImage::ConstPtr& msg);
@@ -114,16 +130,26 @@ class khnp_comp: public QWidget{
 
     khnp_comp(ros::NodeHandle& n, QWidget *parent=0) : nh(n), QWidget(parent){
       ///// params
-      nh.param("/img_width", img_width, 480);
-      nh.param("/img_height", img_height, 360);
+      nh.param<int>("/img_width", img_width, 480);
+      nh.param<int>("/img_height", img_height, 360);
       nh.param<std::string>("/robot_name", robot_name, "/");
       nh.param<std::string>("/third_cam_name", third_cam_name, "third_camera");
       nh.param<std::string>("/third_cam_topic", third_cam_topic, "/third_camera/rgb/image_raw/compressed");
       nh.param<std::string>("/first_cam_topic", first_cam_topic, "/d455/depth/rgb_image_raw/compressed");
+      nh.param<double>("/max_time_t", max_time_t, 3600.0);
+      nh.getParam("/finish_point", finish_point);
+      nh.getParam("/waypoints/p1", wp1); nh.getParam("/waypoints/p2", wp2);
+      nh.getParam("/waypoints/p3", wp3); nh.getParam("/waypoints/p4", wp4);
+      nh.getParam("/waypoints/p5", wp5); nh.getParam("/waypoints/p6", wp6);
+      nh.getParam("/waypoints/p7", wp7); nh.getParam("/waypoints/p8", wp8);
+      nh.getParam("/waypoints/p9", wp9); nh.getParam("/waypoints/p10", wp10);
+      nh.getParam("/windpoints", wind_spec);
 
       ///// Init
       package_path = ros::package::getPath("khnp_competition");
       third_cam_pose.model_name=third_cam_name;
+      model_force_srv.request.body_name="iris::iris_khnp::base_link";
+      model_force_srv.request.duration=ros::Duration(0.2);
       QT_initialize();
 
       ///// sub pub
@@ -134,6 +160,7 @@ class khnp_comp: public QWidget{
 
       spawning_msg_pub = nh.advertise<std_msgs::Empty>("/spawning_model", 1);
       model_mover = nh.serviceClient<gazebo_msgs::SetModelState>("/gazebo/set_model_state");
+      model_pusher = nh.serviceClient<gazebo_msgs::ApplyBodyWrench>("/gazebo/apply_body_wrench");
 
       //// timers
       main_timer = nh.createTimer(ros::Duration(1/24.4), &khnp_comp::main_timer_func, this); 
@@ -590,8 +617,21 @@ void khnp_comp::main_timer_func(const ros::TimerEvent& event){
     if(!if_finished){
 
       ///// time check and finish course
+      if ((current_time.clock-fixed_time.clock).toSec() >= max_time_t)
+      {
+        finish_result();
+      }
       ///// or, check if passing finish line
+      else if (if_passed_finish(uav_pose, finish_point))
+      {        
+        finish_result();
+      }
       ///// or, check if passing waypoint
+      else
+      {
+        if_waypoints(uav_pose);
+        if_wind_disturbance(uav_pose);
+      }
 
     }
   }
@@ -639,12 +679,18 @@ void khnp_comp::zoom_in_out(){
     cam_z_offset=5.0;
   }
 }
-void khnp_comp::cam_move(geometry_msgs::Pose pose){
+void khnp_comp::cam_move(const geometry_msgs::Pose &pose){
   third_cam_pose.pose = pose;
   third_cam_pose.pose.position.z += cam_z_offset;
   third_cam_pose.pose.orientation.x = 0.0; third_cam_pose.pose.orientation.y = 0.0; third_cam_pose.pose.orientation.z = 0.0; third_cam_pose.pose.orientation.w = 1.0;
   model_move_srv.request.model_state = third_cam_pose;
   model_mover.call(model_move_srv);
+}
+bool khnp_comp::if_passed_finish(const geometry_msgs::Pose &pose, const vector<double> &pt){
+  if (fabs(pose.position.x-pt[0]) < 0.25 && fabs(pose.position.y-pt[1]) < 0.8 && fabs(pose.position.z-pt[2]) < 1.25)
+    return true;
+  else
+    return false;
 }
 void khnp_comp::qt_img_update(QLabel *label, cv::Mat img){
   cv::Mat vis_img;
@@ -664,76 +710,285 @@ void khnp_comp::qt_img_update(QLabel *label, cv::Mat img){
     return;
   }
 }
-// void khnp_comp::finish_result(){
-//   if(!if_finished){
-//     right_text1->setText(tr("Total score"));
-//     palette = right_text1->palette();
-//     palette.setColor(QPalette::Window, lightred);
-//     right_text1->setPalette(palette);
+void khnp_comp::finish_result(){
+  if(!if_finished){
+    right_text1->setText(tr("Finished TIME"));
+    palette = right_text1->palette();
+    palette.setColor(QPalette::Window, lightred);
+    right_text1->setPalette(palette);
 
-//     right_text4->setText(tr("Finished time"));
-//     palette = right_text4->palette();
-//     palette.setColor(QPalette::Window, lightred);
-//     right_text4->setPalette(palette);
+    double temp = (current_time.clock-fixed_time.clock).toSec();
+    right_text2->setText(QString::number(temp,'f',2));
+
+    right_text3->setText(tr("Finished CLASS"));
+    palette = right_text3->palette();
+    palette.setColor(QPalette::Window, lightred);
+    right_text3->setPalette(palette);
+
+    right_text4->setText(QString::number(current_class,'f',0));
+
+    ofstream result_file(package_path + "/result.txt");
+    string contents = "Final CLASS: " + to_string(current_class) +
+    "\nFinal Time: " + to_string((current_time.clock-fixed_time.clock).toSec()) +
+    "\nWaypoint1 time: " + to_string(wp_t1) + 
+    "\nWaypoint2 time: " + to_string(wp_t2) + 
+    "\nWaypoint3 time: " + to_string(wp_t3) + 
+    "\nWaypoint4 time: " + to_string(wp_t4) + 
+    "\nWaypoint5 time: " + to_string(wp_t5) + 
+    "\nWaypoint6 time: " + to_string(wp_t6) + 
+    "\nWaypoint7 time: " + to_string(wp_t7) + 
+    "\nWaypoint8 time: " + to_string(wp_t8) + 
+    "\nWaypoint9 time: " + to_string(wp_t9) + 
+    "\nWaypoint10 time: " + to_string(wp_t10);
+    result_file << contents;
+    result_file.close();
     
-//     char result_string[300];
-//     string _one_passed=(courseAB[0].if_passed_map?"Passed":"Failed (or partially)");
-//     string _two_passed=(courseAB[1].if_passed_map?"Passed":"Failed (or partially)");
-//     string _three_passed=(courseAB[2].if_passed_map?"Passed":"Failed (or partially)");
-//     string _four_passed=(courseAB[3].if_passed_map?"Passed":"Failed (or partially)");
-//     string _five_passed=(courseAB[4].if_passed_map?"Passed":"Failed (or partially)");
-//     if (!skip_check){
-//       sprintf(result_string, "Results:\n\n%s: %s \n%s: %s \n%s: %s \n%s: %s \n%s: %s \nPenalty (falldown): %d", //
-//         courseAB[0].name.c_str(), _one_passed.c_str(), courseAB[1].name.c_str(), _two_passed.c_str(), //
-//         courseAB[2].name.c_str(), _three_passed.c_str(), courseAB[3].name.c_str(), _four_passed.c_str(), // 
-//         courseAB[4].name.c_str(), _five_passed.c_str(), falldown_score);
-//     }
-//     else{
-//       sprintf(result_string, "Results:\nYou skipped at least once, score invalid!\n%s: %s \n%s: %s \n%s: %s \n%s: %s \n%s: %s \nPenalty (falldown): %d", //
-//         courseAB[0].name.c_str(), _one_passed.c_str(), courseAB[1].name.c_str(), _two_passed.c_str(), //
-//         courseAB[2].name.c_str(), _three_passed.c_str(), courseAB[3].name.c_str(), _four_passed.c_str(), // 
-//         courseAB[4].name.c_str(), _five_passed.c_str(), falldown_score);
-//     }
-//     QString result = QString::fromStdString(result_string);
-//     right_result->setText(result);
-//     right_result->setAlignment(Qt::AlignCenter);
-//     right_result->setAutoFillBackground(true);
-//     right_result->setFixedSize(QSize(400,180));
-//     palette = right_result->palette();
-//     palette.setColor(QPalette::Window, lightred);
-//     right_result->setPalette(palette);
-//     font = right_result->font();
-//     font.setPointSize(11);
-//     right_result->setFont(font);
-//     right_result->setFrameStyle(QFrame::Panel | QFrame::Raised);
-//     right_result->setLineWidth(3);
+    ROS_WARN("Finished!!!");
+    ROS_WARN("Finished!!!");
+    ROS_WARN("Finished!!!");
+    if_finished=true;
+  }
+}
+void khnp_comp::if_waypoints(const geometry_msgs::Pose &pose){
+  double x = pose.position.x;
+  double y = pose.position.y;
+  double z = pose.position.z;
 
-//     double temp = (current_time.clock-fixed_time.clock).toSec();
-//     right_text8->setText(QString::number(temp,'f',7));
+  if (sqrt(pow(x-wp1[0],2)+pow(y-wp1[1],2)) < 0.6 && fabs(z-wp1[2]) < 0.45)
+  {
+    if (wp_tmp_t1 < 0.0)
+    { //nothing      
+    }
+    else if (wp_tmp_t1==0.0)
+    {
+      wp_tmp_t1 = (current_time.clock-fixed_time.clock).toSec();
+    }
+    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t1 >= 1.5 )
+    {
+      wp_t1 = (current_time.clock-fixed_time.clock).toSec();
+      right_text12->setText(QString::number(wp_t1,'f',2));
+      wp_tmp_t1 = -1.0;
+      current_class--;
+      right_text4->setText(QString::number(current_class,'f',0));
+    }
+  }
+  else if (sqrt(pow(x-wp2[0],2)+pow(y-wp2[1],2)) < 0.6 && fabs(z-wp2[2]) < 0.45)
+  {
+    if (wp_tmp_t2 < 0.0)
+    { //nothing      
+    }
+    else if (wp_tmp_t2==0.0)
+    {
+      wp_tmp_t2 = (current_time.clock-fixed_time.clock).toSec();
+    }
+    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t2 >= 1.5 )
+    {
+      wp_t2 = (current_time.clock-fixed_time.clock).toSec();
+      right_text14->setText(QString::number(wp_t2,'f',2));
+      wp_tmp_t2 = -1.0;
+      current_class--;
+      right_text4->setText(QString::number(current_class,'f',0));
+    }
+  }
+  else if (sqrt(pow(x-wp3[0],2)+pow(y-wp3[1],2)) < 0.6 && fabs(z-wp3[2]) < 0.45)
+  {
+    if (wp_tmp_t3 < 0.0)
+    { //nothing      
+    }
+    else if (wp_tmp_t3==0.0)
+    {
+      wp_tmp_t3 = (current_time.clock-fixed_time.clock).toSec();
+    }
+    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t3 >= 1.5 )
+    {
+      wp_t3 = (current_time.clock-fixed_time.clock).toSec();
+      right_text16->setText(QString::number(wp_t3,'f',2));
+      wp_tmp_t3 = -1.0;
+      current_class--;
+      right_text4->setText(QString::number(current_class,'f',0));
+    }
+  }
+  else if (sqrt(pow(x-wp4[0],2)+pow(y-wp4[1],2)) < 0.6 && fabs(z-wp4[2]) < 0.45)
+  {
+    if (wp_tmp_t4 < 0.0)
+    { //nothing      
+    }
+    else if (wp_tmp_t4==0.0)
+    {
+      wp_tmp_t4 = (current_time.clock-fixed_time.clock).toSec();
+    }
+    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t4 >= 1.5 )
+    {
+      wp_t4 = (current_time.clock-fixed_time.clock).toSec();
+      right_text18->setText(QString::number(wp_t4,'f',2));
+      wp_tmp_t4 = -1.0;
+      current_class--;
+      right_text4->setText(QString::number(current_class,'f',0));
+    }
+  }
+  else if (sqrt(pow(x-wp5[0],2)+pow(y-wp5[1],2)) < 0.6 && fabs(z-wp5[2]) < 0.45)
+  {
+    if (wp_tmp_t5 < 0.0)
+    { //nothing      
+    }
+    else if (wp_tmp_t5==0.0)
+    {
+      wp_tmp_t5 = (current_time.clock-fixed_time.clock).toSec();
+    }
+    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t5 >= 1.5 )
+    {
+      wp_t5 = (current_time.clock-fixed_time.clock).toSec();
+      right_text20->setText(QString::number(wp_t5,'f',2));
+      wp_tmp_t5 = -1.0;
+      current_class--;
+      right_text4->setText(QString::number(current_class,'f',0));
+    }
+  }
+  else if (sqrt(pow(x-wp6[0],2)+pow(y-wp6[1],2)) < 0.6 && fabs(z-wp6[2]) < 0.45)
+  {
+    if (wp_tmp_t6 < 0.0)
+    { //nothing      
+    }
+    else if (wp_tmp_t6==0.0)
+    {
+      wp_tmp_t6 = (current_time.clock-fixed_time.clock).toSec();
+    }
+    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t6 >= 1.5 )
+    {
+      wp_t6 = (current_time.clock-fixed_time.clock).toSec();
+      right_text22->setText(QString::number(wp_t6,'f',2));
+      wp_tmp_t6 = -1.0;
+      current_class--;
+      right_text4->setText(QString::number(current_class,'f',0));
+    }
+  }
+  else if (sqrt(pow(x-wp7[0],2)+pow(y-wp7[1],2)) < 0.6 && fabs(z-wp7[2]) < 0.45)
+  {
+    if (wp_tmp_t7 < 0.0)
+    { //nothing      
+    }
+    else if (wp_tmp_t7==0.0)
+    {
+      wp_tmp_t7 = (current_time.clock-fixed_time.clock).toSec();
+    }
+    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t7 >= 1.5 )
+    {
+      wp_t7 = (current_time.clock-fixed_time.clock).toSec();
+      right_text24->setText(QString::number(wp_t7,'f',2));
+      wp_tmp_t7 = -1.0;
+      current_class--;
+      right_text4->setText(QString::number(current_class,'f',0));
+    }
+  }
+  else if (sqrt(pow(x-wp8[0],2)+pow(y-wp8[1],2)) < 0.6 && fabs(z-wp8[2]) < 0.45)
+  {
+    if (wp_tmp_t8 < 0.0)
+    { //nothing      
+    }
+    else if (wp_tmp_t8==0.0)
+    {
+      wp_tmp_t8 = (current_time.clock-fixed_time.clock).toSec();
+    }
+    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t8 >= 1.5 )
+    {
+      wp_t8 = (current_time.clock-fixed_time.clock).toSec();
+      right_text26->setText(QString::number(wp_t8,'f',2));
+      wp_tmp_t8 = -1.0;
+      current_class--;
+      right_text4->setText(QString::number(current_class,'f',0));
+    }
+  }
+  else if (sqrt(pow(x-wp9[0],2)+pow(y-wp9[1],2)) < 0.6 && fabs(z-wp9[2]) < 0.45)
+  {
+    if (wp_tmp_t9 < 0.0)
+    { //nothing      
+    }
+    else if (wp_tmp_t9==0.0)
+    {
+      wp_tmp_t9 = (current_time.clock-fixed_time.clock).toSec();
+    }
+    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t9 >= 1.5 )
+    {
+      wp_t9 = (current_time.clock-fixed_time.clock).toSec();
+      right_text28->setText(QString::number(wp_t9,'f',2));
+      wp_tmp_t9 = -1.0;
+      current_class--;
+      right_text4->setText(QString::number(current_class,'f',0));
+    }
+  }
+  else if (sqrt(pow(x-wp10[0],2)+pow(y-wp10[1],2)) < 0.6 && fabs(z-wp10[2]) < 0.45)
+  {
+    if (wp_tmp_t10 < 0.0)
+    { //nothing      
+    }
+    else if (wp_tmp_t10==0.0)
+    {
+      wp_tmp_t10 = (current_time.clock-fixed_time.clock).toSec();
+    }
+    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t10 >= 1.5 )
+    {
+      wp_t10 = (current_time.clock-fixed_time.clock).toSec();
+      right_text30->setText(QString::number(wp_t10,'f',2));
+      wp_tmp_t10 = -1.0;
+      current_class--;
+      right_text4->setText(QString::number(current_class,'f',0));
+    }
+  }
+  else
+  {
+    if (wp_tmp_t1 > 0.0) wp_tmp_t1=0.0;
+    if (wp_tmp_t2 > 0.0) wp_tmp_t2=0.0;
+    if (wp_tmp_t3 > 0.0) wp_tmp_t3=0.0;
+    if (wp_tmp_t4 > 0.0) wp_tmp_t4=0.0;
+    if (wp_tmp_t5 > 0.0) wp_tmp_t5=0.0;
+    if (wp_tmp_t6 > 0.0) wp_tmp_t6=0.0;
+    if (wp_tmp_t7 > 0.0) wp_tmp_t7=0.0;
+    if (wp_tmp_t8 > 0.0) wp_tmp_t8=0.0;
+    if (wp_tmp_t9 > 0.0) wp_tmp_t9=0.0;
+    if (wp_tmp_t10 > 0.0) wp_tmp_t10=0.0;
+  }
+}
+void khnp_comp::if_wind_disturbance(const geometry_msgs::Pose &pose){
+  double x = pose.position.x;
+  double y = pose.position.y;
+  double z = pose.position.z;
 
-// /*    for (int i = 0; i < cubes_names.size(); ++i){*/
-// /*      other_pose.model_name = cubes_names[i];*/
-// /*      other_pose.pose.position.x = cubes_poses[i].x; other_pose.pose.position.y = cubes_poses[i].y; other_pose.pose.position.z = cubes_poses[i].z;*/
-// /*      other_pose.pose.orientation.x = 0.0; other_pose.pose.orientation.y = 0.0; other_pose.pose.orientation.z = 0.0; other_pose.pose.orientation.w = 1.0;*/
-// /*      other_pose.twist.linear.x = 0.0; other_pose.twist.linear.y = 0.0; other_pose.twist.linear.z = 0.0;*/
-// /*      model_move_srv.request.model_state = other_pose;*/
-// /*      model_mover.call(model_move_srv);*/
-// /*    }*/
-//     for (int i = 0; i < spheres_names.size(); ++i){
-//       other_pose.model_name = spheres_names[i];
-//       other_pose.pose.position.x = spheres_poses[i].x; other_pose.pose.position.y = spheres_poses[i].y; other_pose.pose.position.z = spheres_poses[i].z;
-//       other_pose.pose.orientation.x = 0.0; other_pose.pose.orientation.y = 0.0; other_pose.pose.orientation.z = 0.0; other_pose.pose.orientation.w = 1.0;
-//       other_pose.twist.linear.x = 0.0; other_pose.twist.linear.y = 0.0; other_pose.twist.linear.z = 0.0;
-//       model_move_srv.request.model_state = other_pose;
-//       model_mover.call(model_move_srv);
-//       spheres_throw_vec[i].if_throw=false;
-//     }
-
-//     if_finished=true;
-
-//     ROS_WARN("Finished!!!");
-//   }
-// }
+  for (int i = 0; i < wind_spec.size()/4; ++i)
+  {
+    if (fabs(x-wind_spec[i*4]) < 0.8 && fabs(y-wind_spec[i*4+1]) < 0.8 && fabs(z-wind_spec[i*4+2]) < 1.25)
+    {
+      if (wind_spec[i*4+3]==0.0)
+      {
+        model_force_srv.request.wrench.force.x = 3.0;
+        model_force_srv.request.wrench.force.y = 0.0;
+      }
+      else if (wind_spec[i*4+3]==1.0)
+      {
+        model_force_srv.request.wrench.force.x = 0.0;
+        model_force_srv.request.wrench.force.y = -3.0;
+      }
+      else if (wind_spec[i*4+3]==2.0)
+      {
+        model_force_srv.request.wrench.force.x = 0.0;
+        model_force_srv.request.wrench.force.y = 3.0;
+      }
+      else if (wind_spec[i*4+3]==3.0)
+      {
+        model_force_srv.request.wrench.force.x = -3.0;
+        model_force_srv.request.wrench.force.y = 0.0;
+      }
+      model_force_srv.request.wrench.force.z = 0.0;
+      model_pusher.call(model_force_srv);
+      break; // no need to inspect more
+    }
+    else
+    {
+      model_force_srv.request.wrench.force.x = 0.0;
+      model_force_srv.request.wrench.force.y = 0.0;
+      model_force_srv.request.wrench.force.z = 0.0;
+    }
+  }
+}
 
 
 
