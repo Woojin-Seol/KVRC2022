@@ -78,8 +78,9 @@ $ sudo apt-get upgrade
 $ cd <your_workspace>
 $ catkin build
 $ . devel/setup.bash
+
 ## It is better to save sourcing your workspace within .bashrc
-## $ echo "source <your_workspace>/devel/setup.bash" >> ~/.bashrc
+$ echo "source <your_workspace>/devel/setup.bash" >> ~/.bashrc
 
 $ cd <your_workspace>/src
 $ git clone --recursive https://github.com/engcang/khnp_competition2022
@@ -87,7 +88,7 @@ $ git clone --recursive https://github.com/engcang/khnp_competition2022
 Add Gazebo and ROS Path **ONLY ONCE, do NOT run below block again!!**
 $ cd khnp_competition2022/gazebo_map_for_khnp
 $ echo "export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:$(pwd)/season2:/home/$(uname -n)/PX4-Autopilot/Tools/sitl_gazebo/models" >> ~/.bashrc
-$ echo "export GAZEBO_PLUGIN_PATH=/home/$(uname -n)/PX4-Autopilot/build/px4_sitl_default/build_gazebo" >> ~/.bashrc
+$ echo "export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:/home/$(uname -n)/PX4-Autopilot/build/px4_sitl_default/build_gazebo" >> ~/.bashrc
 $ echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/$(uname -n)/PX4-Autopilot/build/px4_sitl_default/build_gazebo" >> ~/.bashrc
 $ echo "export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:/home/$(uname -n)/PX4-Autopilot:/home/$(uname -n)/PX4-Autopilot/Tools/sitl_gazebo" >> ~/.bashrc
 
@@ -96,6 +97,20 @@ $ . ~/.bashrc
 $ cd <your_workspace>/src
 $ catkin build
 $ . ~/.bashrc
+```
+
++ Your `~/.bashrc` should be look like
+```shell
+....
+
+source ~/khnp_ws/devel/setup.bash
+
+export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:/home/mason/PX4-Autopilot/build/px4_sitl_default/build_gazebo
+export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/home/mason/khnp_ws/src/khnp_competition2022/gazebo_map_for_khnp/season2:/home/mason/PX4-Autopilot/Tools/sitl_gazebo/models
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/mason/PX4-Autopilot/build/px4_sitl_default/build_gazebo
+export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:/home/mason/PX4-Autopilot:/home/mason/PX4-Autopilot/Tools/sitl_gazebo
+
+....
 ```
 ---
 
