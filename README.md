@@ -103,12 +103,12 @@ $ . ~/.bashrc
 ```shell
 ....
 
-source ~/khnp_ws/devel/setup.bash
+source ~/khnp_ws/devel/setup.bash # order is important, workspace's setup.bash should be ahead of ROS_PACKAGE_PATH
 
 export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:/home/mason/PX4-Autopilot/build/px4_sitl_default/build_gazebo
 export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/home/mason/khnp_ws/src/khnp_competition2022/gazebo_map_for_khnp/season2:/home/mason/PX4-Autopilot/Tools/sitl_gazebo/models
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/mason/PX4-Autopilot/build/px4_sitl_default/build_gazebo
-export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:/home/mason/PX4-Autopilot:/home/mason/PX4-Autopilot/Tools/sitl_gazebo
+export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:/home/mason/PX4-Autopilot:/home/mason/PX4-Autopilot/Tools/sitl_gazebo # order is important, workspace's setup.bash should be ahead of ROS_PACKAGE_PATH
 
 ....
 ```
