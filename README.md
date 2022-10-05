@@ -87,10 +87,10 @@ $ git clone --recursive https://github.com/engcang/khnp_competition2022
 
 Add Gazebo and ROS Path **ONLY ONCE, do NOT run below block again!!**
 $ cd khnp_competition2022/gazebo_map_for_khnp
-$ echo "export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:$(pwd)/season2:/home/$(uname -n)/PX4-Autopilot/Tools/sitl_gazebo/models" >> ~/.bashrc
-$ echo "export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:/home/$(uname -n)/PX4-Autopilot/build/px4_sitl_default/build_gazebo" >> ~/.bashrc
-$ echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/$(uname -n)/PX4-Autopilot/build/px4_sitl_default/build_gazebo" >> ~/.bashrc
-$ echo "export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:/home/$(uname -n)/PX4-Autopilot:/home/$(uname -n)/PX4-Autopilot/Tools/sitl_gazebo" >> ~/.bashrc
+$ echo "export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:$(pwd)/season2:/home/$(whoami)/PX4-Autopilot/Tools/sitl_gazebo/models" >> ~/.bashrc
+$ echo "export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:/home/$(whoami)/PX4-Autopilot/build/px4_sitl_default/build_gazebo" >> ~/.bashrc
+$ echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/$(whoami)/PX4-Autopilot/build/px4_sitl_default/build_gazebo" >> ~/.bashrc
+$ echo "export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:/home/$(whoami)/PX4-Autopilot:/home/$(whoami)/PX4-Autopilot/Tools/sitl_gazebo" >> ~/.bashrc
 
 $ . ~/.bashrc
 
