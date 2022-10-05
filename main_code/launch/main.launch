@@ -1,11 +1,6 @@
 <?xml version="1.0"?>
 <launch>
 
-<!-- Edit this part optionally for debugging-->
-  <arg name="gui" default="true"/> <!-- Gazebo gui, set false when too slow -->
-  <arg name="paused" default="false"/> <!-- Gazebo start with paused -->
-  <arg name="verbose" default="false"/> <!-- Gazebo verbose, set true when debug Gazebo -->
-
 <!-- Edit this part with your own algorithms -->
   <node name="example_control_node" pkg="khnp_competition" type="example_control_code.py"/>
 
@@ -15,19 +10,8 @@
  <!-- course changing is only allowed for competition managers -->
   <arg name="course" default="practice"/> <!-- practice: open source for participants, real: not open -->
 
-  <!-- Gazebo -->
-  <arg if="$(eval arg('course') == 'practice')" name="world" value="$(find khnp_competition)/../gazebo_map_for_khnp/season2/practice.world"/>
   <rosparam if="$(eval arg('course') == 'practice')" command="load" file="$(find khnp_competition)/resources/practice.yaml" />
-  <arg if="$(eval arg('course') == 'real')" name="world" value="$(find khnp_competition)/../gazebo_map_for_khnp/season2/real.world" />
   <rosparam if="$(eval arg('course') == 'real')" command="load" file="$(find khnp_competition)/resources/real.yaml" />
-
-  <include file="$(find khnp_competition)/launch/gazebo.launch">
-      <arg name="world" value="$(arg world)"/>
-      <!-- <arg name="world" value="worlds/empty.world"/> -->
-      <arg name="gui" value="$(arg gui)" />
-      <arg name="verbose" value="$(arg verbose)"/>
-      <arg name="paused" value="$(arg paused)"/>
-  </include>
 
   <!--  MAIN code -->
   <param name="/img_width" value="480"/> <!-- only for visualization, not for real image width -->
