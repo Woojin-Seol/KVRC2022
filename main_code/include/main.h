@@ -953,28 +953,28 @@ void khnp_comp::if_wind_disturbance(const geometry_msgs::Pose &pose){
   double y = pose.position.y;
   double z = pose.position.z;
 
-  for (int i = 0; i < wind_spec.size()/4; ++i)
+  for (int i = 0; i < wind_spec.size()/5; ++i)
   {
-    if (fabs(x-wind_spec[i*4]) < 0.8 && fabs(y-wind_spec[i*4+1]) < 0.8 && fabs(z-wind_spec[i*4+2]) < 1.25)
+    if (fabs(x-wind_spec[i*5]) < 0.8 && fabs(y-wind_spec[i*5+1]) < 0.8 && fabs(z-wind_spec[i*5+2]) < 1.25)
     {
-      if (wind_spec[i*4+3]==0.0)
+      if (wind_spec[i*5+3]==0.0)
       {
-        model_force_srv.request.wrench.force.x = 3.0;
+        model_force_srv.request.wrench.force.x = 1.0 * wind_spec[i*5+4];
         model_force_srv.request.wrench.force.y = 0.0;
       }
-      else if (wind_spec[i*4+3]==1.0)
+      else if (wind_spec[i*5+3]==1.0)
       {
         model_force_srv.request.wrench.force.x = 0.0;
-        model_force_srv.request.wrench.force.y = -3.0;
+        model_force_srv.request.wrench.force.y = -1.0 * wind_spec[i*5+4];
       }
-      else if (wind_spec[i*4+3]==2.0)
+      else if (wind_spec[i*5+3]==2.0)
       {
         model_force_srv.request.wrench.force.x = 0.0;
-        model_force_srv.request.wrench.force.y = 3.0;
+        model_force_srv.request.wrench.force.y = 1.0 * wind_spec[i*5+4];
       }
-      else if (wind_spec[i*4+3]==3.0)
+      else if (wind_spec[i*5+3]==3.0)
       {
-        model_force_srv.request.wrench.force.x = -3.0;
+        model_force_srv.request.wrench.force.x = -1.0 * wind_spec[i*5+4];
         model_force_srv.request.wrench.force.y = 0.0;
       }
       model_force_srv.request.wrench.force.z = 0.0;
