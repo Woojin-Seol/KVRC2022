@@ -119,12 +119,9 @@ export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:/home/mason/PX4-Autopilot:/home/mason/
 ## ● How to use
 + Run launch file
 ~~~shell
-$ roslaunch khnp_competition gazebo.launch
 $ roslaunch khnp_competition main.launch
 
-
 For real competition (maintainer only)
-$ roslaunch khnp_competition gazebo.launch course:=real
 $ roslaunch khnp_competition main.launch course:=real
 ~~~
 

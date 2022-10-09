@@ -1,0 +1,12 @@
+Final CLASS: 8
+Final Time: 524.208000
+Waypoint1 time: 0.000000
+Waypoint2 time: 109.292000
+Waypoint3 time: 0.000000
+Waypoint4 time: 0.000000
+Waypoint5 time: 266.956000
+Waypoint6 time: 0.000000
+Waypoint7 time: 0.000000
+Waypoint8 time: 507.364000
+Waypoint9 time: 0.000000
+Waypoint10 time: 0.000000

@@ -65,6 +65,7 @@ class khnp_comp: public QWidget{
     QLabel *right_text21, *right_text22, *right_text23, *right_text24, *right_text25, *right_text26, *right_text27, *right_text28, *right_text29, *right_text30;
     QLabel *right_partition, *right_creator, *right_logo;
     QPushButton *refresh_button, *zoom_button;
+    vector<QLabel*> waypoint_time_text_vec;
 
     QPalette palette;
     QFont font;
@@ -105,9 +106,9 @@ class khnp_comp: public QWidget{
     //class
     int current_class=11;
     //waypoints
-    vector<double> wp1, wp2, wp3, wp4, wp5, wp6, wp7, wp8, wp9, wp10;
-    double wp_t1=0.0, wp_t2=0.0, wp_t3=0.0, wp_t4=0.0, wp_t5=0.0, wp_t6=0.0, wp_t7=0.0, wp_t8=0.0, wp_t9=0.0, wp_t10=0.0;
-    double wp_tmp_t1=0.0, wp_tmp_t2=0.0, wp_tmp_t3=0.0, wp_tmp_t4=0.0, wp_tmp_t5=0.0, wp_tmp_t6=0.0, wp_tmp_t7=0.0, wp_tmp_t8=0.0, wp_tmp_t9=0.0, wp_tmp_t10=0.0;
+    vector<double> waypoints;
+    vector<double> waypoints_times;
+    vector<double> waypoints_times_tmp;
     //wind points
     vector<double> wind_spec;
 
@@ -138,14 +139,12 @@ class khnp_comp: public QWidget{
       nh.param<std::string>("/first_cam_topic", first_cam_topic, "/d455/depth/rgb_image_raw/compressed");
       nh.param<double>("/max_time_t", max_time_t, 3600.0);
       nh.getParam("/finish_point", finish_point);
-      nh.getParam("/waypoints/p1", wp1); nh.getParam("/waypoints/p2", wp2);
-      nh.getParam("/waypoints/p3", wp3); nh.getParam("/waypoints/p4", wp4);
-      nh.getParam("/waypoints/p5", wp5); nh.getParam("/waypoints/p6", wp6);
-      nh.getParam("/waypoints/p7", wp7); nh.getParam("/waypoints/p8", wp8);
-      nh.getParam("/waypoints/p9", wp9); nh.getParam("/waypoints/p10", wp10);
+      nh.getParam("/waypoints", waypoints);
       nh.getParam("/windpoints", wind_spec);
 
       ///// Init
+      waypoints_times = vector<double>(waypoints.size()/3, 0.0);
+      waypoints_times_tmp = vector<double>(waypoints.size()/3, 0.0);
       package_path = ros::package::getPath("khnp_competition");
       third_cam_pose.model_name=third_cam_name;
       model_force_srv.request.body_name="iris::iris_khnp::base_link";
@@ -325,6 +324,7 @@ void khnp_comp::QT_initialize(){
   font = right_text12->font();
   font.setPointSize(12);
   right_text12->setFont(font);
+  waypoint_time_text_vec.push_back(right_text12);
 
   right_text13->setText(tr("Waypoint2"));
   right_text13->setAlignment(Qt::AlignCenter);
@@ -346,6 +346,7 @@ void khnp_comp::QT_initialize(){
   font = right_text14->font();
   font.setPointSize(12);
   right_text14->setFont(font);
+  waypoint_time_text_vec.push_back(right_text14);
 
   right_text15->setText(tr("Waypoint3"));
   right_text15->setAlignment(Qt::AlignCenter);
@@ -367,6 +368,7 @@ void khnp_comp::QT_initialize(){
   font = right_text16->font();
   font.setPointSize(12);
   right_text16->setFont(font);
+  waypoint_time_text_vec.push_back(right_text16);
 
   right_text17->setText(tr("Waypoint4"));
   right_text17->setAlignment(Qt::AlignCenter);
@@ -388,6 +390,7 @@ void khnp_comp::QT_initialize(){
   font = right_text18->font();
   font.setPointSize(12);
   right_text18->setFont(font);
+  waypoint_time_text_vec.push_back(right_text18);
 
   right_text19->setText(tr("Waypoint5"));
   right_text19->setAlignment(Qt::AlignCenter);
@@ -409,6 +412,7 @@ void khnp_comp::QT_initialize(){
   font = right_text20->font();
   font.setPointSize(12);
   right_text20->setFont(font);
+  waypoint_time_text_vec.push_back(right_text20);
 
   right_text21->setText(tr("Waypoint6"));
   right_text21->setAlignment(Qt::AlignCenter);
@@ -430,6 +434,7 @@ void khnp_comp::QT_initialize(){
   font = right_text22->font();
   font.setPointSize(12);
   right_text22->setFont(font);
+  waypoint_time_text_vec.push_back(right_text22);
 
   right_text23->setText(tr("Waypoint7"));
   right_text23->setAlignment(Qt::AlignCenter);
@@ -451,6 +456,7 @@ void khnp_comp::QT_initialize(){
   font = right_text24->font();
   font.setPointSize(12);
   right_text24->setFont(font);
+  waypoint_time_text_vec.push_back(right_text24);
 
   right_text25->setText(tr("Waypoint8"));
   right_text25->setAlignment(Qt::AlignCenter);
@@ -472,6 +478,7 @@ void khnp_comp::QT_initialize(){
   font = right_text26->font();
   font.setPointSize(12);
   right_text26->setFont(font);
+  waypoint_time_text_vec.push_back(right_text26);
 
   right_text27->setText(tr("Waypoint9"));
   right_text27->setAlignment(Qt::AlignCenter);
@@ -493,6 +500,7 @@ void khnp_comp::QT_initialize(){
   font = right_text28->font();
   font.setPointSize(12);
   right_text28->setFont(font);
+  waypoint_time_text_vec.push_back(right_text28);
 
   right_text29->setText(tr("Waypoint10"));
   right_text29->setAlignment(Qt::AlignCenter);
@@ -514,6 +522,7 @@ void khnp_comp::QT_initialize(){
   font = right_text30->font();
   font.setPointSize(12);
   right_text30->setFont(font);
+  waypoint_time_text_vec.push_back(right_text30);
 
   QString creator = "Maintainers (Report any bugs please)\n\nEungchang Mason Lee (email: engcang93@gmail.com)\nJunho Choi (email: cjh6685kr@gmail.com)";
   right_creator->setText(creator);
@@ -727,19 +736,13 @@ void khnp_comp::finish_result(){
 
     right_text4->setText(QString::number(current_class,'f',0));
 
-    ofstream result_file(package_path + "/result.txt");
+    ofstream result_file(package_path + "/result/result.txt");
     string contents = "Final CLASS: " + to_string(current_class) +
-    "\nFinal Time: " + to_string((current_time.clock-fixed_time.clock).toSec()) +
-    "\nWaypoint1 time: " + to_string(wp_t1) + 
-    "\nWaypoint2 time: " + to_string(wp_t2) + 
-    "\nWaypoint3 time: " + to_string(wp_t3) + 
-    "\nWaypoint4 time: " + to_string(wp_t4) + 
-    "\nWaypoint5 time: " + to_string(wp_t5) + 
-    "\nWaypoint6 time: " + to_string(wp_t6) + 
-    "\nWaypoint7 time: " + to_string(wp_t7) + 
-    "\nWaypoint8 time: " + to_string(wp_t8) + 
-    "\nWaypoint9 time: " + to_string(wp_t9) + 
-    "\nWaypoint10 time: " + to_string(wp_t10);
+    "\nFinal Time: " + to_string((current_time.clock-fixed_time.clock).toSec());
+    for (int i = 0; i < waypoints_times.size(); ++i)
+    {
+      contents = contents + "\nWaypoint " + to_string(i) + " time: " + to_string(waypoints_times[i]);
+    }
     result_file << contents;
     result_file.close();
     
@@ -753,199 +756,37 @@ void khnp_comp::if_waypoints(const geometry_msgs::Pose &pose){
   double x = pose.position.x;
   double y = pose.position.y;
   double z = pose.position.z;
+  bool in_waypoint_=false;
 
-  if (sqrt(pow(x-wp1[0],2)+pow(y-wp1[1],2)) < 0.6 && fabs(z-wp1[2]) < 0.45)
+  for (int i = 0; i < waypoints.size()/3; ++i)
   {
-    if (wp_tmp_t1 < 0.0)
-    { //nothing      
-    }
-    else if (wp_tmp_t1==0.0)
+    if(sqrt(pow(x-waypoints[i*3],2)+pow(y-waypoints[i*3+1],2)) < 0.6 && fabs(z-waypoints[i*3+2]) < 0.45)
     {
-      wp_tmp_t1 = (current_time.clock-fixed_time.clock).toSec();
-    }
-    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t1 >= 1.5 )
-    {
-      wp_t1 = (current_time.clock-fixed_time.clock).toSec();
-      right_text12->setText(QString::number(wp_t1,'f',2));
-      wp_tmp_t1 = -1.0;
-      current_class--;
-      right_text4->setText(QString::number(current_class,'f',0));
+      in_waypoint_=true;
+      break;
+      if (waypoints_times_tmp[i] < 0.0)
+      { //nothing      
+      }
+      else if (waypoints_times_tmp[i]==0.0)
+      {
+        waypoints_times_tmp[i] = (current_time.clock-fixed_time.clock).toSec();
+      }
+      else if ( (current_time.clock-fixed_time.clock).toSec() - waypoints_times_tmp[i] >= 1.5 )
+      {
+        waypoints_times[i] = (current_time.clock-fixed_time.clock).toSec();
+        waypoint_time_text_vec[i]->setText(QString::number(waypoints_times[i],'f',2));
+        waypoints_times_tmp[i] = -1.0;
+        current_class--;
+        right_text4->setText(QString::number(current_class,'f',0));
+      }
     }
   }
-  else if (sqrt(pow(x-wp2[0],2)+pow(y-wp2[1],2)) < 0.6 && fabs(z-wp2[2]) < 0.45)
+  if (!in_waypoint_)
   {
-    if (wp_tmp_t2 < 0.0)
-    { //nothing      
-    }
-    else if (wp_tmp_t2==0.0)
+    for (int i = 0; i < waypoints_times_tmp.size(); ++i)
     {
-      wp_tmp_t2 = (current_time.clock-fixed_time.clock).toSec();
+      if (waypoints_times_tmp[i] > 0.0) waypoints_times_tmp[i] = 0.0;
     }
-    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t2 >= 1.5 )
-    {
-      wp_t2 = (current_time.clock-fixed_time.clock).toSec();
-      right_text14->setText(QString::number(wp_t2,'f',2));
-      wp_tmp_t2 = -1.0;
-      current_class--;
-      right_text4->setText(QString::number(current_class,'f',0));
-    }
-  }
-  else if (sqrt(pow(x-wp3[0],2)+pow(y-wp3[1],2)) < 0.6 && fabs(z-wp3[2]) < 0.45)
-  {
-    if (wp_tmp_t3 < 0.0)
-    { //nothing      
-    }
-    else if (wp_tmp_t3==0.0)
-    {
-      wp_tmp_t3 = (current_time.clock-fixed_time.clock).toSec();
-    }
-    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t3 >= 1.5 )
-    {
-      wp_t3 = (current_time.clock-fixed_time.clock).toSec();
-      right_text16->setText(QString::number(wp_t3,'f',2));
-      wp_tmp_t3 = -1.0;
-      current_class--;
-      right_text4->setText(QString::number(current_class,'f',0));
-    }
-  }
-  else if (sqrt(pow(x-wp4[0],2)+pow(y-wp4[1],2)) < 0.6 && fabs(z-wp4[2]) < 0.45)
-  {
-    if (wp_tmp_t4 < 0.0)
-    { //nothing      
-    }
-    else if (wp_tmp_t4==0.0)
-    {
-      wp_tmp_t4 = (current_time.clock-fixed_time.clock).toSec();
-    }
-    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t4 >= 1.5 )
-    {
-      wp_t4 = (current_time.clock-fixed_time.clock).toSec();
-      right_text18->setText(QString::number(wp_t4,'f',2));
-      wp_tmp_t4 = -1.0;
-      current_class--;
-      right_text4->setText(QString::number(current_class,'f',0));
-    }
-  }
-  else if (sqrt(pow(x-wp5[0],2)+pow(y-wp5[1],2)) < 0.6 && fabs(z-wp5[2]) < 0.45)
-  {
-    if (wp_tmp_t5 < 0.0)
-    { //nothing      
-    }
-    else if (wp_tmp_t5==0.0)
-    {
-      wp_tmp_t5 = (current_time.clock-fixed_time.clock).toSec();
-    }
-    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t5 >= 1.5 )
-    {
-      wp_t5 = (current_time.clock-fixed_time.clock).toSec();
-      right_text20->setText(QString::number(wp_t5,'f',2));
-      wp_tmp_t5 = -1.0;
-      current_class--;
-      right_text4->setText(QString::number(current_class,'f',0));
-    }
-  }
-  else if (sqrt(pow(x-wp6[0],2)+pow(y-wp6[1],2)) < 0.6 && fabs(z-wp6[2]) < 0.45)
-  {
-    if (wp_tmp_t6 < 0.0)
-    { //nothing      
-    }
-    else if (wp_tmp_t6==0.0)
-    {
-      wp_tmp_t6 = (current_time.clock-fixed_time.clock).toSec();
-    }
-    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t6 >= 1.5 )
-    {
-      wp_t6 = (current_time.clock-fixed_time.clock).toSec();
-      right_text22->setText(QString::number(wp_t6,'f',2));
-      wp_tmp_t6 = -1.0;
-      current_class--;
-      right_text4->setText(QString::number(current_class,'f',0));
-    }
-  }
-  else if (sqrt(pow(x-wp7[0],2)+pow(y-wp7[1],2)) < 0.6 && fabs(z-wp7[2]) < 0.45)
-  {
-    if (wp_tmp_t7 < 0.0)
-    { //nothing      
-    }
-    else if (wp_tmp_t7==0.0)
-    {
-      wp_tmp_t7 = (current_time.clock-fixed_time.clock).toSec();
-    }
-    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t7 >= 1.5 )
-    {
-      wp_t7 = (current_time.clock-fixed_time.clock).toSec();
-      right_text24->setText(QString::number(wp_t7,'f',2));
-      wp_tmp_t7 = -1.0;
-      current_class--;
-      right_text4->setText(QString::number(current_class,'f',0));
-    }
-  }
-  else if (sqrt(pow(x-wp8[0],2)+pow(y-wp8[1],2)) < 0.6 && fabs(z-wp8[2]) < 0.45)
-  {
-    if (wp_tmp_t8 < 0.0)
-    { //nothing      
-    }
-    else if (wp_tmp_t8==0.0)
-    {
-      wp_tmp_t8 = (current_time.clock-fixed_time.clock).toSec();
-    }
-    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t8 >= 1.5 )
-    {
-      wp_t8 = (current_time.clock-fixed_time.clock).toSec();
-      right_text26->setText(QString::number(wp_t8,'f',2));
-      wp_tmp_t8 = -1.0;
-      current_class--;
-      right_text4->setText(QString::number(current_class,'f',0));
-    }
-  }
-  else if (sqrt(pow(x-wp9[0],2)+pow(y-wp9[1],2)) < 0.6 && fabs(z-wp9[2]) < 0.45)
-  {
-    if (wp_tmp_t9 < 0.0)
-    { //nothing      
-    }
-    else if (wp_tmp_t9==0.0)
-    {
-      wp_tmp_t9 = (current_time.clock-fixed_time.clock).toSec();
-    }
-    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t9 >= 1.5 )
-    {
-      wp_t9 = (current_time.clock-fixed_time.clock).toSec();
-      right_text28->setText(QString::number(wp_t9,'f',2));
-      wp_tmp_t9 = -1.0;
-      current_class--;
-      right_text4->setText(QString::number(current_class,'f',0));
-    }
-  }
-  else if (sqrt(pow(x-wp10[0],2)+pow(y-wp10[1],2)) < 0.6 && fabs(z-wp10[2]) < 0.45)
-  {
-    if (wp_tmp_t10 < 0.0)
-    { //nothing      
-    }
-    else if (wp_tmp_t10==0.0)
-    {
-      wp_tmp_t10 = (current_time.clock-fixed_time.clock).toSec();
-    }
-    else if ( (current_time.clock-fixed_time.clock).toSec() - wp_tmp_t10 >= 1.5 )
-    {
-      wp_t10 = (current_time.clock-fixed_time.clock).toSec();
-      right_text30->setText(QString::number(wp_t10,'f',2));
-      wp_tmp_t10 = -1.0;
-      current_class--;
-      right_text4->setText(QString::number(current_class,'f',0));
-    }
-  }
-  else
-  {
-    if (wp_tmp_t1 > 0.0) wp_tmp_t1=0.0;
-    if (wp_tmp_t2 > 0.0) wp_tmp_t2=0.0;
-    if (wp_tmp_t3 > 0.0) wp_tmp_t3=0.0;
-    if (wp_tmp_t4 > 0.0) wp_tmp_t4=0.0;
-    if (wp_tmp_t5 > 0.0) wp_tmp_t5=0.0;
-    if (wp_tmp_t6 > 0.0) wp_tmp_t6=0.0;
-    if (wp_tmp_t7 > 0.0) wp_tmp_t7=0.0;
-    if (wp_tmp_t8 > 0.0) wp_tmp_t8=0.0;
-    if (wp_tmp_t9 > 0.0) wp_tmp_t9=0.0;
-    if (wp_tmp_t10 > 0.0) wp_tmp_t10=0.0;
   }
 }
 void khnp_comp::if_wind_disturbance(const geometry_msgs::Pose &pose){

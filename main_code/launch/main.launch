@@ -1,29 +1,55 @@
 <?xml version="1.0"?>
 <launch>
 
+<!-- Edit here for debugging Gazebo only -->
+  <arg name="gui" default="true"/> <!-- Gazebo gui, set false when too slow -->
+  <arg name="paused" default="false"/> <!-- Gazebo start with paused -->
+  <arg name="verbose" default="false"/> <!-- Gazebo verbose, set true when debug Gazebo -->
+  <arg name="debug" default="false"/> <!-- Gazebo debug, set true when debug Gazebo -->
+<!-- Edit here for turn on/off rviz -->
+  <arg name="rviz" default="true"/> <!-- Rviz on or not -->
+
 <!-- Edit this part with your own algorithms -->
   <node name="example_control_node" pkg="khnp_competition" type="example_control_code.py"/>
+
+
 
 
 
 <!-- Do not touch below!!!!!!!! -->
  <!-- course changing is only allowed for competition managers -->
   <arg name="course" default="practice"/> <!-- practice: open source for participants, real: not open -->
+  <arg name="robot_name" default="iris"/> <!-- do not change -->
 
   <rosparam if="$(eval arg('course') == 'practice')" command="load" file="$(find khnp_competition)/resources/practice.yaml" />
   <rosparam if="$(eval arg('course') == 'real')" command="load" file="$(find khnp_competition)/resources/real.yaml" />
+  <arg if="$(eval arg('course') == 'practice')" name="world" value="$(find khnp_competition)/../gazebo_map_for_khnp/season2/practice.world"/>
+  <arg if="$(eval arg('course') == 'real')" name="world" value="$(find khnp_competition)/../gazebo_map_for_khnp/season2/real.world" />
 
-  <!--  MAIN code -->
+  <!-- Gazebo sim -->
+  <include file="$(find khnp_competition)/launch/gazebo.launch">
+      <arg name="world" value="$(arg world)"/>
+      <arg name="gui" value="$(arg gui)"/>
+      <arg name="debug" value="$(arg debug)"/>
+      <arg name="verbose" value="$(arg verbose)"/>
+      <arg name="paused" value="$(arg paused)"/>
+  </include>
+
+  <!--  params for main code -->
   <param name="/img_width" value="480"/> <!-- only for visualization, not for real image width -->
   <param name="/img_height" value="360"/> 
   <param name="/first_cam_topic" value="/d435i/stereo_ir/left/image_raw/compressed"/>
   <param name="/third_cam_topic" value="/third_camera/rgb/image_raw/compressed"/>
   <param name="/third_cam_name" value="third_camera"/>
-  <param name="/robot_name" value="iris"/>
-
+  <param name="/robot_name" value="$(arg robot_name)"/>
+  <!--  MAIN NODE  -->
   <node name="khnp_competition_code" pkg="khnp_competition" type="khnp_competition_node" output="screen"/>
-  <!-- launch-prefix="gdb -ex run --> <!--args" -->
+                                                          <!-- launch-prefix="gdb -ex run --> <!--args" -->
+  <!--  Spawning code for third cam  -->
   <node name="khnp_competition_spawner" pkg="khnp_competition" type="spawning.py" output="screen"/>
+  <!--  TF code for rviz and depth  -->
   <node name="khnp_competition_tf_broadcaster" pkg="khnp_competition" type="tf_broadcaster.py"/>
+  <!--  rviz  -->
+  <node if="$(arg rviz)" name="rvizualizer" pkg="rviz" type="rviz" args="-d $(find khnp_competition)/../rviz.rviz" />
 
 </launch>
