@@ -26,7 +26,7 @@
   + It comes with `Qt5`, `Gazebo`, `OpenCV` version 3.2, `cv_bridge`
   + In other words, this repo depends on `QT5`, `Gazebo`, `OpenCV`, `cv_bridge`.
 + Make sure that you installed `PX4-SITL` and `mavros`
-  + Note, we are using commit `96c7fe4978bab2af970a097f4898e024c2d33440` instead of the latest version
+  + **Note, we are using commit `96c7fe4978bab2af970a097f4898e024c2d33440` instead of the latest version**
 ~~~shell
 $ sudo apt-get install ros-<distro>-mavros ros-<distro>-mavros-extras
 $ wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
@@ -39,9 +39,32 @@ $ git reset --hard 96c7fe4978bab2af970a097f4898e024c2d33440
 $ git submodule update --init --recursive
 
 $ source PX4-Autopilot/Tools/setup/ubuntu.sh --no-sim-tools --no-nuttx
+~~~
 
-
+  + **Note, `Lockstep` should be disabled by changing the `boards/px4/sitl/default.cmake` file as follows:**
+    + Open the file
+~~~shell
 $ cd ~/PX4-Autopilot
+
+$ gedit boards/px4/sitl/default.cmake
+~~~
+    + Edit the last line's `ENALBE_LOCKSTEP_SCHEDULER` as `no`
+~~~Makefile
+if(REPLAY_FILE)
+  message(STATUS "Building with uorb publisher rules support")
+  add_definitions(-DORB_USE_PUBLISHER_RULES)
+
+  message(STATUS "Building without lockstep for replay")
+  set(ENABLE_LOCKSTEP_SCHEDULER no)
+else()
+  #set(ENABLE_LOCKSTEP_SCHEDULER yes)
+  set(ENABLE_LOCKSTEP_SCHEDULER no)
+endif()
+~~~
+    + Then build `PX4-SITL`
+~~~shell
+$ cd ~/PX4-Autopilot
+
 # important!!
 $ sudo apt install ros-<distro>-gazebo-plugins
 

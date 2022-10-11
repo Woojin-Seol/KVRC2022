@@ -61,7 +61,7 @@ if __name__=='__main__':
         finally:
             if mas.if_cam_spawned:
                 break
-    time.sleep(7)
+    time.sleep(5)
     rospy.logwarn("Cam spawned!!")
     rospy.logwarn("Cam spawning code exit.")
     sys.exit(0)

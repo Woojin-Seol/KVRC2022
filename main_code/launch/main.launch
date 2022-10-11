@@ -5,7 +5,7 @@
   <arg name="rviz" default="true"/> <!-- Rviz on or not -->
 
 <!-- Edit this part with your own algorithms -->
-  <!-- <node name="example_control_node" pkg="khnp_competition" type="example_control_code.py"/> -->
+  <node name="example_control_node" pkg="khnp_competition" type="example_control_code.py"/>
 
 
 
