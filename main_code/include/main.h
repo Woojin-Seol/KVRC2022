@@ -762,8 +762,6 @@ void khnp_comp::if_waypoints(const geometry_msgs::Pose &pose){
   {
     if(sqrt(pow(x-waypoints[i*3],2)+pow(y-waypoints[i*3+1],2)) < 0.6 && fabs(z-waypoints[i*3+2]) < 0.45)
     {
-      in_waypoint_=true;
-      break;
       if (waypoints_times_tmp[i] < 0.0)
       { //nothing      
       }
@@ -779,6 +777,8 @@ void khnp_comp::if_waypoints(const geometry_msgs::Pose &pose){
         current_class--;
         right_text4->setText(QString::number(current_class,'f',0));
       }
+      in_waypoint_=true;
+      break;
     }
   }
   if (!in_waypoint_)

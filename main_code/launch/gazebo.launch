@@ -4,6 +4,18 @@
     <!-- launches MAVROS, PX4 SITL, Gazebo environment, and spawns vehicle -->
     <!-- vehicle pose -->
 
+<!-- Edit here for debugging Gazebo only -->
+    <arg name="gui" default="true"/> <!-- Gazebo gui, set false when too slow -->
+    <arg name="paused" default="false"/> <!-- Gazebo start with paused -->
+    <arg name="verbose" default="false"/> <!-- Gazebo verbose, set true when debug Gazebo -->
+    <arg name="debug" default="false"/> <!-- Gazebo debug, set true when debug Gazebo -->
+    <arg name="respawn_gazebo" default="false"/>
+
+<!-- Edit here for maintainers only -->
+    <arg name="course" default="practice"/> <!-- practice: open source for participants, real: not open -->
+
+    <arg if="$(eval arg('course') == 'practice')" name="world" value="$(find khnp_competition)/../gazebo_map_for_khnp/season2/practice.world"/>
+    <arg if="$(eval arg('course') == 'real')" name="world" value="$(find khnp_competition)/../gazebo_map_for_khnp/season2/real.world" />
 
     <arg name="x" default="0.0"/> 
     <arg name="y" default="0.0"/> 
@@ -16,14 +28,7 @@
     <arg name="vehicle" default="iris"/>
     <arg name="sensor" default="iris_khnp_sensors"/>
     <arg name="sdf" default="$(find khnp_competition)/../gazebo_map_for_khnp/season2/$(arg sensor)/$(arg sensor).sdf"/>
-    <arg name="world" default="$(find khnp_competition)/../gazebo_map_for_khnp/season2/practice.world"/>
 
-    <!-- gazebo configs -->
-    <arg name="gui" default="true"/> <!-- Gazebo gui, set false when too slow -->
-    <arg name="paused" default="false"/> <!-- Gazebo start with paused -->
-    <arg name="verbose" default="false"/> <!-- Gazebo verbose, set true when debug Gazebo -->
-    <arg name="debug" default="false"/> <!-- Gazebo debug, set true when debug Gazebo -->
-    <arg name="respawn_gazebo" default="false"/>
     <!-- MAVROS configs -->
     <arg name="fcu_url" default="udp://:14540@localhost:14557"/>
     <arg name="respawn_mavros" default="false"/>

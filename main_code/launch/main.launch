@@ -1,16 +1,11 @@
 <?xml version="1.0"?>
 <launch>
 
-<!-- Edit here for debugging Gazebo only -->
-  <arg name="gui" default="true"/> <!-- Gazebo gui, set false when too slow -->
-  <arg name="paused" default="false"/> <!-- Gazebo start with paused -->
-  <arg name="verbose" default="false"/> <!-- Gazebo verbose, set true when debug Gazebo -->
-  <arg name="debug" default="false"/> <!-- Gazebo debug, set true when debug Gazebo -->
 <!-- Edit here for turn on/off rviz -->
   <arg name="rviz" default="true"/> <!-- Rviz on or not -->
 
 <!-- Edit this part with your own algorithms -->
-  <node name="example_control_node" pkg="khnp_competition" type="example_control_code.py"/>
+  <!-- <node name="example_control_node" pkg="khnp_competition" type="example_control_code.py"/> -->
 
 
 
@@ -23,17 +18,6 @@
 
   <rosparam if="$(eval arg('course') == 'practice')" command="load" file="$(find khnp_competition)/resources/practice.yaml" />
   <rosparam if="$(eval arg('course') == 'real')" command="load" file="$(find khnp_competition)/resources/real.yaml" />
-  <arg if="$(eval arg('course') == 'practice')" name="world" value="$(find khnp_competition)/../gazebo_map_for_khnp/season2/practice.world"/>
-  <arg if="$(eval arg('course') == 'real')" name="world" value="$(find khnp_competition)/../gazebo_map_for_khnp/season2/real.world" />
-
-  <!-- Gazebo sim -->
-  <include file="$(find khnp_competition)/launch/gazebo.launch">
-      <arg name="world" value="$(arg world)"/>
-      <arg name="gui" value="$(arg gui)"/>
-      <arg name="debug" value="$(arg debug)"/>
-      <arg name="verbose" value="$(arg verbose)"/>
-      <arg name="paused" value="$(arg paused)"/>
-  </include>
 
   <!--  params for main code -->
   <param name="/img_width" value="480"/> <!-- only for visualization, not for real image width -->
