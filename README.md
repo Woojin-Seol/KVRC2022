@@ -6,7 +6,7 @@
 
 
 ## Homepage - [click](http://kvrc2022.com/)
-<!-- ## Promotion Video [click] -->
+## Promotion Video [click](https://youtu.be/usKW3UG9wpc)
 <!-- ## NEWS article [click] -->
 
 
